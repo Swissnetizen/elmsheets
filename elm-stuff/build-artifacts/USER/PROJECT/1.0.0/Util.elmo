@@ -1,0 +1,50 @@
+Elm.Util = Elm.Util || {};
+Elm.Util.make = function (_elm) {
+   "use strict";
+   _elm.Util = _elm.Util || {};
+   if (_elm.Util.values)
+   return _elm.Util.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Util",
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $String = Elm.String.make(_elm);
+   var flattenMaybe = function (m) {
+      return function () {
+         switch (m.ctor)
+         {case "Just": switch (m._0.ctor)
+              {case "Just":
+                 return $Maybe.Just(m._0._0);}
+              break;}
+         return $Maybe.Nothing;
+      }();
+   };
+   var unsafeMaybe = F2(function (error,
+   maybe) {
+      return function () {
+         switch (maybe.ctor)
+         {case "Just": return maybe._0;
+            case "Nothing":
+            return $Debug.crash(A2($Basics._op["++"],
+              "ERROR unsafeMaybe",
+              error));}
+         _U.badCase($moduleName,
+         "between lines 38 and 42");
+      }();
+   });
+   var alphabet = $String.toList("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+   var selectFromAlphabet = function (n) {
+      return $Maybe.withDefault(_U.chr("!"))($List.head($List.drop(n)(alphabet)));
+   };
+   _elm.Util.values = {_op: _op
+                      ,alphabet: alphabet
+                      ,selectFromAlphabet: selectFromAlphabet
+                      ,unsafeMaybe: unsafeMaybe
+                      ,flattenMaybe: flattenMaybe};
+   return _elm.Util.values;
+};

@@ -1,0 +1,278 @@
+Elm.Sheets = Elm.Sheets || {};
+Elm.Sheets.make = function (_elm) {
+   "use strict";
+   _elm.Sheets = _elm.Sheets || {};
+   if (_elm.Sheets.values)
+   return _elm.Sheets.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Sheets",
+   $Basics = Elm.Basics.make(_elm),
+   $Cell = Elm.Cell.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $Html$Events = Elm.Html.Events.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Parse = Elm.Parse.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $StartApp = Elm.StartApp.make(_elm),
+   $Util = Elm.Util.make(_elm);
+   var header = function () {
+      var pred = function (n) {
+         return A2($Html.th,
+         _L.fromArray([]),
+         _L.fromArray([$Html.text($Basics.toString($Util.selectFromAlphabet(n)))]));
+      };
+      return A2($List.map,
+      pred,
+      _L.range(0,20));
+   }();
+   var onInput = F2(function (address,
+   f) {
+      return A3($Html$Events.on,
+      "input",
+      $Html$Events.targetValue,
+      function (v) {
+         return A2($Signal.message,
+         address,
+         f(v));
+      });
+   });
+   var getCell = F2(function (model,
+   id) {
+      return function () {
+         var y = id.y;
+         var x = id.x;
+         return $Util.flattenMaybe($Maybe.map($List.head)($Maybe.map($List.drop(x))($Maybe.map(function (_) {
+            return _.row;
+         })($List.head($List.filter(function (r) {
+            return _U.eq(r.id,y);
+         })(model.data))))));
+      }();
+   });
+   var UpdateCell = function (a) {
+      return {ctor: "UpdateCell"
+             ,_0: a};
+   };
+   var ChangeCellContent = F2(function (a,
+   b) {
+      return {ctor: "ChangeCellContent"
+             ,_0: a
+             ,_1: b};
+   });
+   var ToggleEditMode = function (a) {
+      return {ctor: "ToggleEditMode"
+             ,_0: a};
+   };
+   var cell = F2(function (address,
+   cellModel) {
+      return function () {
+         var label = _U.eq(cellModel.editMode,
+         true) ? A2($Html.input,
+         _L.fromArray([$Html$Attributes.placeholder(cellModel.id.view)
+                      ,$Html$Attributes.value(cellModel.content)
+                      ,A2($Html$Events.onBlur,
+                      address,
+                      ToggleEditMode(cellModel.id))
+                      ,A2(onInput,
+                      address,
+                      ChangeCellContent(cellModel.id))]),
+         _L.fromArray([])) : $Html.text(cellModel.data);
+         return A2($Html.td,
+         _L.fromArray([A2($Html$Events.onDoubleClick,
+         address,
+         ToggleEditMode(cellModel.id))]),
+         _L.fromArray([label]));
+      }();
+   });
+   var row = F2(function (address,
+   rowModel) {
+      return A2($Html.tr,
+      _L.fromArray([]),
+      A2($List.map,
+      cell(address),
+      rowModel.row));
+   });
+   var sheet = F2(function (address,
+   model) {
+      return function () {
+         var content = A2($List.map,
+         row(address),
+         model.data);
+         return A2($Html.table,
+         _L.fromArray([]),
+         _L.fromArray([A2($Html.thead,
+         _L.fromArray([]),
+         A2($Basics._op["++"],
+         header,
+         content))]));
+      }();
+   });
+   var PopulateCells = {ctor: "PopulateCells"};
+   var view = F2(function (address,
+   model) {
+      return A2($Html.div,
+      _L.fromArray([]),
+      _L.fromArray([A2($Html.button,
+                   _L.fromArray([A2($Html$Events.onClick,
+                   address,
+                   PopulateCells)]),
+                   _L.fromArray([$Html.text($Basics.toString($Parse.convertCellName("c3")))]))
+                   ,A2(sheet,address,model)]));
+   });
+   var Pass = {ctor: "Pass"};
+   var makeRow = F2(function (x,
+   y) {
+      return {_: {}
+             ,id: y
+             ,row: A2($List.map,
+             $Cell.makeEmpty(y),
+             _L.range(0,x))};
+   });
+   var Row = F2(function (a,b) {
+      return {_: {},id: b,row: a};
+   });
+   var Model = function (a) {
+      return {_: {},data: a};
+   };
+   var populateCells = F2(function (x,
+   y) {
+      return A2($List.map,
+      makeRow(x),
+      _L.range(0,y));
+   });
+   var update = F2(function (action,
+   model) {
+      return function () {
+         var editCell = F3(function (data,
+         pred,
+         id) {
+            return function () {
+               var findCell = F2(function (x,
+               cell) {
+                  return _U.eq(cell.id.x,
+                  x) ? pred(cell) : cell;
+               });
+               var findRow = F2(function (id,
+               row) {
+                  return _U.eq(row.id,
+                  id.y) ? _U.replace([["row"
+                                      ,A2($List.map,
+                                      findCell(id.x),
+                                      row.row)]],
+                  row) : row;
+               });
+               return A2($List.map,
+               findRow(id),
+               data);
+            }();
+         });
+         var modifyCell = F3(function (model,
+         pred,
+         id) {
+            return _U.replace([["data"
+                               ,A3(editCell,
+                               model.data,
+                               pred,
+                               id)]],
+            model);
+         });
+         return function () {
+            switch (action.ctor)
+            {case "ChangeCellContent":
+               return function () {
+                    var data = A2($Parse.computeContent,
+                    action._1,
+                    getCell(model));
+                    var pred = function (cell) {
+                       return _U.replace([["content"
+                                          ,action._1]
+                                         ,["data",$Basics.fst(data)]
+                                         ,["refs",$Basics.snd(data)]],
+                       cell);
+                    };
+                    return A3(modifyCell,
+                    model,
+                    pred,
+                    action._0);
+                 }();
+               case "Pass": return model;
+               case "PopulateCells":
+               return _U.replace([["data"
+                                  ,A2(populateCells,20,20)]],
+                 model);
+               case "ToggleEditMode":
+               return function () {
+                    var pred = function (cell) {
+                       return _U.replace([["editMode"
+                                          ,$Basics.not(cell.editMode)]],
+                       cell);
+                    };
+                    return A3(modifyCell,
+                    model,
+                    pred,
+                    action._0);
+                 }();
+               case "UpdateCell":
+               return function () {
+                    var mayCell = A2(getCell,
+                    model,
+                    action._0);
+                    var content = function () {
+                       switch (mayCell.ctor)
+                       {case "Just":
+                          return mayCell._0.content;
+                          case "Nothing": return "";}
+                       _U.badCase($moduleName,
+                       "between lines 145 and 150");
+                    }();
+                    var data = A2($Parse.computeContent,
+                    content,
+                    getCell(model));
+                    var pred = function (cell) {
+                       return _U.replace([["data"
+                                          ,$Basics.fst(data)]
+                                         ,["refs",$Basics.snd(data)]],
+                       cell);
+                    };
+                    return A3(modifyCell,
+                    model,
+                    pred,
+                    action._0);
+                 }();}
+            _U.badCase($moduleName,
+            "between lines 114 and 156");
+         }();
+      }();
+   });
+   var initialModel = {_: {}
+                      ,data: A2(populateCells,20,20)};
+   var main = $StartApp.start({_: {}
+                              ,model: initialModel
+                              ,update: update
+                              ,view: view});
+   _elm.Sheets.values = {_op: _op
+                        ,initialModel: initialModel
+                        ,populateCells: populateCells
+                        ,Model: Model
+                        ,Row: Row
+                        ,makeRow: makeRow
+                        ,Pass: Pass
+                        ,PopulateCells: PopulateCells
+                        ,ToggleEditMode: ToggleEditMode
+                        ,ChangeCellContent: ChangeCellContent
+                        ,UpdateCell: UpdateCell
+                        ,getCell: getCell
+                        ,update: update
+                        ,onInput: onInput
+                        ,cell: cell
+                        ,row: row
+                        ,header: header
+                        ,sheet: sheet
+                        ,view: view
+                        ,main: main};
+   return _elm.Sheets.values;
+};

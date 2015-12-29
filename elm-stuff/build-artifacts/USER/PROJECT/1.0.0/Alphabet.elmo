@@ -1,0 +1,24 @@
+Elm.Alphabet = Elm.Alphabet || {};
+Elm.Alphabet.make = function (_elm) {
+   "use strict";
+   _elm.Alphabet = _elm.Alphabet || {};
+   if (_elm.Alphabet.values)
+   return _elm.Alphabet.values;
+   var _op = {},
+   _N = Elm.Native,
+   _U = _N.Utils.make(_elm),
+   _L = _N.List.make(_elm),
+   $moduleName = "Alphabet",
+   $Basics = Elm.Basics.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $String = Elm.String.make(_elm);
+   var alphabet = $String.toList("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+   var selectFromAlphabet = function (n) {
+      return $Maybe.withDefault(_U.chr("!"))($List.head($List.drop(n)(alphabet)));
+   };
+   _elm.Alphabet.values = {_op: _op
+                          ,alphabet: alphabet
+                          ,selectFromAlphabet: selectFromAlphabet};
+   return _elm.Alphabet.values;
+};
