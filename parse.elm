@@ -30,9 +30,9 @@ computeContent content getCell =
   let h = 
     String.slice 0 1 content
   in 
-    if 
-      | h == "=" -> computeForumla content getCell
-      | otherwise -> (content, [])
+    if h == "=" 
+      then computeForumla content getCell
+      else (content, [])
 
 
 coordRegex = Regex.regex "([A-Z][1-9]{1,3})"

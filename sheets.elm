@@ -19,10 +19,10 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 
 import Signal exposing (..)
-import String 
-import StartApp
+--import String 
+import StartApp.Simple as StartApp
 import Maybe
-import Result
+--import Result
 import Cell
 import Parse 
 import Util exposing (..)
@@ -36,6 +36,7 @@ initialModel =
   }
 
 
+populateCells : Int -> Int -> List Row
 populateCells x y = 
   List.map (makeRow x) [0..y]
  
@@ -51,6 +52,7 @@ type alias Row =
   } 
 
 
+makeRow : Int -> Int -> Row
 makeRow x y = 
   { id = y,
     row = List.map (Cell.makeEmpty y) [0..x]
@@ -59,7 +61,7 @@ makeRow x y =
 
 -- update
 type Action 
-  = Pass
+  = NoOp
   | PopulateCells
   | ToggleEditMode Cell.Id
   | ChangeCellContent Cell.Id String
@@ -112,7 +114,7 @@ update action model =
       }
   in
     case action of
-      Pass ->
+      NoOp ->
         model
 
       PopulateCells ->
@@ -155,8 +157,20 @@ update action model =
             }
         in modifyCell model pred id
 
+-- Signalisation
+
+
+actions : Mailbox Action
+actions = 
+  mailbox NoOp
+
+
+model : Signal Model
+model =
+  Signal.foldp update initialModel actions.signal
 -- view
 
+onInput : Address a -> (String -> a) -> Attribute
 onInput address f =
   on "input" targetValue (\v -> Signal.message address (f v))
 
@@ -185,6 +199,7 @@ row address rowModel =
   tr [ ] (List.map (cell address) rowModel.row)
 
 
+header : List Html
 header =
   let pred n = th [ ] [ text (toString (selectFromAlphabet n)) ]
   in List.map pred [0..20]
@@ -202,15 +217,14 @@ sheet address model =
 view : Address Action -> Model -> Html
 view address model = 
   div [ ] 
-  [ button [ onClick address PopulateCells ] [ text (toString (Parse.convertCellName "c3")) ],
+  [ button 
+      [ onClick address PopulateCells ] 
+      [ text "reŝargu" ],
     sheet address model
   ]
 
 
 main : Signal Html
 main = 
-  StartApp.start 
-    { model = initialModel,
-      view = view,
-      update = update
-    }
+  Signal.map (view actions.address) model
+

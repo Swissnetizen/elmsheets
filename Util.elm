@@ -19,6 +19,11 @@ import String
 import Maybe
 import Debug
 
+import Html
+import Html.Attributes 
+import Html.Events 
+
+
 alphabet : List Char
 alphabet = 
   "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -47,3 +52,8 @@ flattenMaybe m =
     case m of
         Just (Just value) -> Just value
         _ -> Nothing
+
+
+onInput : Signal.Address a -> (String -> a) -> Html.Attribute
+onInput address f =
+  Html.Events.on "input" Html.Events.targetValue (\v -> Signal.message address (f v))
